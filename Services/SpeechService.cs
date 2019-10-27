@@ -13,19 +13,12 @@ namespace Services
         /// <summary>
         /// 辨識輸入語音為文字
         /// </summary>
-        /// <param name="subkey">訂用帳戶金鑰</param>
-        /// <param name="region">訂用帳戶服務的所在區域</param>
-        /// <param name="language">要辨識的語言</param>
+        /// <param name="configBM">語音辨識基本設定用</param>
         /// <returns>辨識後的文字</returns>
-        public async Task<string> SpeakToText(string subkey, string region, string language)
+        public async Task<string> SpeakToText(BaseConfigBM configBM)
         {
-            // 設定 訂用帳戶金鑰 與 訂用帳戶服務的所在區域
-            // 免費試用的服務所在區域都是 westus
-            var config =
-                SpeechConfig.FromSubscription(subkey, region);
-
-            // 要辨識的語言
-            config.SpeechRecognitionLanguage = language;
+            // 設定語音服務設定
+            var config = this.GetSpeechConfig(configBM);
 
             // 建立語音辨識器
             using (var recognizer = new SpeechRecognizer(config))
@@ -41,39 +34,63 @@ namespace Services
         /// <summary>
         /// 辨識輸入文字為語音
         /// </summary>
-        /// <param name="subkey">訂用帳戶金鑰</param>
-        /// <param name="region">訂用帳戶服務的所在區域</param>
-        /// <param name="language">要辨識的語言</param>
-        /// <param name="text">輸入的文字</param>
+        /// <param name="textToSpeakBM">輸入文字為語音用</param>
         /// <returns></returns>
-        public async Task TextToSpeak(string subkey, string region, string language, string text)
+        public async Task TextToSpeak(TextToSpeakBM textToSpeakBM)
         {
-            // 設定 訂用帳戶金鑰 與 訂用帳戶服務的所在區域
-            // 免費試用的服務所在區域都是 westus
-            var config = 
-                SpeechConfig.FromSubscription(subkey, region);
-
-            // 要辨識的語言
-            config.SpeechRecognitionLanguage = language;
-
-            // 根據要辨識的語言設定對應的語音名稱
-            // 中文 zh-TW-Yating-Apollo、zh-TW-HanHanRUS、zh-TW-Zhiwei-Apollo
-            // 英文 en-AU-Catherine、en-US-Jessa24kRUS
-            if (language == "zh-TW")
-                config.SpeechSynthesisVoiceName = "zh-TW-Yating-Apollo";
-
-            if (language == "en-AU")
-                config.SpeechSynthesisVoiceName = "en-US-Jessa24kRUS";
+            // 設定語音服務設定
+            var config = this.GetSpeechConfig(textToSpeakBM);
 
             // 建立語音辨識器
             using (var synthesizer = new SpeechSynthesizer(config))
             {
                 // 將文字合成為語音
-                var result = await synthesizer.SpeakTextAsync(text);
+                var result = await synthesizer.SpeakTextAsync(textToSpeakBM.Text);
 
                 // 釋放資源
                 result.Dispose();
             }
+        }
+
+        /// <summary>
+        /// 設定語音服務設定
+        /// </summary>
+        /// <param name="configBM"></param>
+        /// <returns></returns>
+        private SpeechConfig GetSpeechConfig(BaseConfigBM configBM)
+        {
+            // 設定 訂用帳戶金鑰 與 訂用帳戶服務的所在區域
+            // 免費試用的服務所在區域都是 westus
+            var speechConfig =
+                SpeechConfig.FromSubscription(configBM.Subkey, configBM.Region);
+
+            // 要辨識的語言
+            speechConfig.SpeechRecognitionLanguage = configBM.Language;
+
+            // 設定語音名稱
+            speechConfig = this.SetVoiceName(configBM.Language, speechConfig);
+
+            return speechConfig;
+        }
+
+        /// <summary>
+        /// 設定語音名稱
+        /// </summary>
+        /// <param name="language">要辨識的語言</param>
+        /// <param name="speechConfig">語音服務設定</param>
+        /// <returns></returns>
+        private SpeechConfig SetVoiceName(string language, SpeechConfig speechConfig)
+        {
+            // 根據要辨識的語言設定對應的語音名稱
+            // 中文 zh-TW-Yating-Apollo、zh-TW-HanHanRUS、zh-TW-Zhiwei-Apollo
+            // 英文 en-AU-Catherine、en-US-Jessa24kRUS
+            if (language == "zh-TW")
+                speechConfig.SpeechSynthesisVoiceName = "zh-TW-Yating-Apollo";
+
+            if (language == "en-AU")
+                speechConfig.SpeechSynthesisVoiceName = "en-US-Jessa24kRUS";
+
+            return speechConfig;
         }
     }
 }

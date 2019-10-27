@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Interfaces;
+using System;
 using System.Threading.Tasks;
 
 namespace Interfaces
@@ -11,20 +12,15 @@ namespace Interfaces
         /// <summary>
         /// 辨識輸入語音為文字
         /// </summary>
-        /// <param name="subkey">訂用帳戶金鑰</param>
-        /// <param name="region">訂用帳戶服務的所在區域</param>
-        /// <param name="language">要辨識的語言</param>
+        /// <param name="configBM">語音辨識基本設定用</param>
         /// <returns>辨識後的文字</returns>
-        Task<string> SpeakToText(string subkey,string region,string language);
+        Task<string> SpeakToText(BaseConfigBM configBM);
 
         /// <summary>
         /// 辨識輸入文字為語音
         /// </summary>
-        /// <param name="subkey">訂用帳戶金鑰</param>
-        /// <param name="region">訂用帳戶服務的所在區域</param>
-        /// <param name="language">要辨識的語言</param>
-        /// <param name="text">輸入的文字</param>
+        /// <param name="textToSpeakBM">輸入文字為語音用</param>
         /// <returns></returns>
-        Task TextToSpeak(string subkey,string region,string language,string text);
+        Task TextToSpeak(TextToSpeakBM textToSpeakBM);
     }
 }
