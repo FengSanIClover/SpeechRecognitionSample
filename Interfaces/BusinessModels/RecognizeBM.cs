@@ -7,7 +7,7 @@ namespace Interfaces
     /// <summary>
     /// 語音辨識基本設定用 BM
     /// </summary>
-    public class BaseConfigBM
+    public class RecognizeBM
     {
         /// <summary>
         /// 訂用帳戶金鑰
@@ -23,5 +23,10 @@ namespace Interfaces
         /// 要辨識的語言
         /// </summary>
         public string Language { get; set; }
+
+        /// <summary>
+        /// 輸入的文字
+        /// </summary>
+        public string Text { get; set; }
     }
 }

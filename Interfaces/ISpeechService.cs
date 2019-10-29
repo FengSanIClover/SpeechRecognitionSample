@@ -14,13 +14,13 @@ namespace Interfaces
         /// </summary>
         /// <param name="configBM">語音辨識基本設定用</param>
         /// <returns>辨識後的文字</returns>
-        Task<string> SpeakToText(BaseConfigBM configBM);
+        Task<string> SpeakToText(RecognizeBM configBM);
 
         /// <summary>
         /// 辨識輸入文字為語音
         /// </summary>
         /// <param name="textToSpeakBM">輸入文字為語音用</param>
         /// <returns></returns>
-        Task TextToSpeak(TextToSpeakBM textToSpeakBM);
+        Task TextToSpeak(RecognizeBM recognizeBM);
     }
 }
