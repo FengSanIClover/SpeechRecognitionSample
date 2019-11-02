@@ -25,28 +25,16 @@ namespace Services
             // 設定語音服務設定
             var config = this.GetSpeechConfig(recognizeBM);
 
-            // 建立語音辨識器
+            // 建立語音辨識器類別
             using (var recognizer = new SpeechRecognizer(config))
             {
-                Console.WriteLine("輸入語音:");
-
-                // RecognizeOnceAsync 此方法 僅適用於單個語音識別，如命令或查詢
-                // 如果需要長時間運行的多話語識別，請改用 StartContinuousRecognitionAsync（）
+                // RecognizeOnceAsync 此方法 僅適用於單個語音識別，如命令或查詢，輸入時間小於 15 秒
+                // 如果需要長時間運行的多話語識別，請改用 StartContinuousRecognitionAsync()， 
+                // 輸入時間大於 15 秒
                 var result = await recognizer.RecognizeOnceAsync();
-
-                if (result.Reason == ResultReason.Canceled)
-                {
-                    var cancellation = CancellationDetails.FromResult(result);
-
-                    this.DisPlayMessage(cancellation);
-                }
-
-                recognizeText = result.Text;
-
-                if (result.Reason == ResultReason.NoMatch)
-                {
-                    recognizeText = $"無法辨識輸入語音，請重新輸入";
-                }
+                
+                // 判斷回傳執行結果狀態
+                this.CheckReason(result);
 
                 return recognizeText;
             }
@@ -62,29 +50,23 @@ namespace Services
             // 設定語音服務設定
             var config = this.GetSpeechConfig(recognizeBM);
 
-            // 建立語音辨識器
+            // 建立語音合成器類別
             using (var synthesizer = new SpeechSynthesizer(config))
             {
                 Console.WriteLine("處理中...");
 
+                // 判斷輸入是否為空白
+                if (string.IsNullOrEmpty(recognizeBM.Text.Trim()))
+                    recognizeBM.Text = "無法辨識輸入，請重新輸入\n";
+
                 // 將文字合成為語音
-                var result = await synthesizer.SpeakTextAsync(recognizeBM.Text);
-
-                if (result.Reason == ResultReason.Canceled)
+                using (var result = await synthesizer.SpeakTextAsync(recognizeBM.Text))
                 {
-                    var cancellation = SpeechSynthesisCancellationDetails.FromResult(result);
+                    // 判斷回傳執行結果狀態
+                    this.CheckReason(result);
 
-                    result.Dispose();
-
-                    this.DisPlayMessage(cancellation);
-
-                    throw new Exception("發生系統錯誤，請重新執行");
+                    Console.WriteLine($"系統辨識為: {recognizeBM.Text}\n");
                 }
-
-                Console.WriteLine(recognizeBM.Text);
-
-                // 釋放資源
-                result.Dispose();
             }
         }
 
@@ -119,14 +101,44 @@ namespace Services
         {
             // 根據要辨識的語言設定對應的語音名稱
             // 中文 zh-TW-Yating-Apollo、zh-TW-HanHanRUS、zh-TW-Zhiwei-Apollo
-            // 英文 en-AU-Catherine、en-US-Jessa24kRUS
             if (language == "zh-TW")
                 speechConfig.SpeechSynthesisVoiceName = "zh-TW-Yating-Apollo";
 
-            if (language == "en-AU")
-                speechConfig.SpeechSynthesisVoiceName = "en-US-Jessa24kRUS";
-
             return speechConfig;
+        }
+
+        /// <summary>
+        /// 判斷回傳執行結果狀態
+        /// </summary>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        private bool CheckReason(dynamic result)
+        {
+            // 發生錯誤
+            if (result.Reason == ResultReason.Canceled)
+            {
+                var typeName = result.GetType().Name;
+
+                // 發生錯誤，提示訊息
+                if (typeName == "RecognitionResult")
+                    this.DisPlayMessage(CancellationDetails.FromResult(result));
+
+                if (typeName == "SpeechSynthesisResult")
+                    this.DisPlayMessage(SpeechSynthesisCancellationDetails.FromResult(result));
+            }
+
+            // 如果 執行結果為 語音轉文字類型
+            // 設定 辨識後的文字
+            if (result as RecognitionResult != null)
+                recognizeText = result.Text;
+
+            // 無法辨識輸入結果
+            if (result.Reason == ResultReason.NoMatch)
+            {
+                recognizeText = $"無法辨識輸入語音，請重新輸入\n";
+            }
+
+            return true;
         }
 
         /// <summary>
