@@ -30,7 +30,7 @@ namespace SpeechRecognitionSample
             Console.WriteLine("輸入帳戶金鑰:");
 
             // 取得金鑰
-            recognizeBM.Subkey = "eebe5b99a62b42659bff9f301a1f29b8"; // Console.ReadLine();
+            recognizeBM.Subkey = Console.ReadLine();
 
             // 取得服務端點位置，免費試用帳戶都為 westus
             recognizeBM.Region = "westus";
